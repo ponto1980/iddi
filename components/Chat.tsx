@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import IdentitySelector from "./IdentitySelector";
+import { db } from "../firebase";
+import { ref, onValue, set } from "firebase/database";
 
 interface Message {
   sender: "user" | "bot";
@@ -17,6 +19,23 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [identity, setIdentity] = useState<Identity | null>(null);
+  const sessionId = "test-user"; // in futuro sostituibile con login
+
+  useEffect(() => {
+    const saved = localStorage.getItem("iddi_identity");
+    if (saved) {
+      const identity = JSON.parse(saved);
+      setIdentity(identity);
+    }
+
+    const msgRef = ref(db, `sessions/${sessionId}/messages`);
+    onValue(msgRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setMessages(data);
+      }
+    });
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || !identity) return;
@@ -41,9 +60,12 @@ export default function Chat() {
       });
 
       const data = await res.json();
-      setMessages([...newMessages, { sender: "bot", text: data.reply }]);
+      const updatedMessages = [...newMessages, { sender: "bot", text: data.reply }];
+      setMessages(updatedMessages);
+      set(ref(db, `sessions/${sessionId}/messages`), updatedMessages);
     } catch (err) {
-      setMessages([...newMessages, { sender: "bot", text: "Errore nella comunicazione." }]);
+      const fallback = [...newMessages, { sender: "bot", text: "Errore nella comunicazione." }];
+      setMessages(fallback);
     }
 
     setLoading(false);
