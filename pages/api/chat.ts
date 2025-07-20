@@ -12,6 +12,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: 'Missing Together API key' });
   }
 
+  const payload = {
+    model: "mistralai/Mistral-7B-Instruct-v0.1",
+    messages: [
+      { role: "system", content: "Rispondi con empatia e chiarezza. Sii una guida riflessiva e stimolante." },
+      ...(history || []),
+      { role: "user", content: message }
+    ]
+  };
+
+  console.log("📤 Payload inviato a Together:", JSON.stringify(payload, null, 2));
+
   try {
     const response = await fetch("https://api.together.xyz/v1/chat/completions", {
       method: "POST",
@@ -19,14 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
-      body: JSON.stringify({
-        model: "mistralai/Mistral-7B-Instruct-v0.1",
-        messages: [
-          { role: "system", content: "Rispondi con empatia e chiarezza. Sii una guida riflessiva e stimolante." },
-          ...(history || []),
-          { role: "user", content: message }
-        ]
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json();
