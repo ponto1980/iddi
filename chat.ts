@@ -1,18 +1,24 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Only POST requests allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Only POST requests allowed" });
   }
 
-  const { message } = req.body;
+  const { message, history, prompt } = req.body;
   const apiKey = process.env.TOGETHER_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'Missing Together API key' });
+    return res.status(500).json({ error: "Missing Together API key" });
   }
 
   try {
+    const messages = [
+      { role: "system", content: prompt || "Sei un assistente brillante, empatico e ragioni sempre in italiano. Rispondi con logica e chiarezza." },
+      ...history,
+      { role: "user", content: message }
+    ];
+
     const response = await fetch("https://api.together.xyz/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -21,14 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       body: JSON.stringify({
         model: "mistralai/Mistral-7B-Instruct-v0.1",
-        messages: [
-          { role: "system", content: "Rispondi con empatia e chiarezza. Sii una guida riflessiva e stimolante." },
-          { role: "user", content: message }
-        ]
+        messages,
+        temperature: 0.7
       })
     });
 
     const data = await response.json();
+
     if (data.error) {
       return res.status(500).json({ reply: `Errore Together.ai: ${JSON.stringify(data.error)}` });
     }
