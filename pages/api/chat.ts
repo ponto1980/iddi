@@ -29,10 +29,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const data = await completion.json();
-    const response = data.choices?.[0]?.message?.content || "Nessuna risposta ricevuta.";
+    console.log("OpenAI raw response:", JSON.stringify(data, null, 2));
 
+    if (data.error) {
+      return res.status(500).json({ reply: `Errore OpenAI: ${data.error.message}` });
+    }
+
+    const response = data.choices?.[0]?.message?.content || "Nessuna risposta utile ricevuta.";
     res.status(200).json({ reply: response });
   } catch (error) {
-    res.status(500).json({ error: "Errore nella comunicazione con OpenAI." });
+    console.error("Errore fetch verso OpenAI:", error);
+    res.status(500).json({ reply: "Errore nella comunicazione con OpenAI." });
   }
 }
