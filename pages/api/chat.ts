@@ -5,7 +5,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Only POST requests allowed' });
   }
 
-  const { message, history } = req.body;
+  const { message, history, prompt } = req.body;
   const apiKey = process.env.TOGETHER_API_KEY;
 
   if (!apiKey) {
@@ -15,10 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const payload = {
     model: "mistralai/Mistral-7B-Instruct-v0.1",
     messages: [
-      {
-        role: "system",
-        content: "Rispondi sempre in italiano, con empatia e chiarezza. Sii una guida riflessiva e stimolante."
-      },
+      { role: "system", content: prompt || "Rispondi in italiano con chiarezza." },
       ...(history || []),
       { role: "user", content: message }
     ]

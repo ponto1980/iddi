@@ -1,17 +1,25 @@
 import { useState } from "react";
+import IdentitySelector from "./IdentitySelector";
 
 interface Message {
   sender: "user" | "bot";
   text: string;
 }
 
+interface Identity {
+  name: string;
+  description: string;
+  prompt: string;
+}
+
 export default function Chat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [identity, setIdentity] = useState<Identity | null>(null);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !identity) return;
 
     const newMessages: Message[] = [...messages, { sender: "user", text: input }];
     setMessages(newMessages);
@@ -27,7 +35,8 @@ export default function Chat() {
           history: newMessages.map(m => ({
             role: m.sender === "user" ? "user" : "assistant",
             content: m.text
-          }))
+          })),
+          prompt: identity.prompt
         }),
       });
 
@@ -41,38 +50,43 @@ export default function Chat() {
   };
 
   return (
-    <div className="w-full max-w-2xl bg-white border rounded-xl p-4 shadow mx-auto mt-6">
-      <div className="h-80 overflow-y-auto mb-4 space-y-2">
-        {messages.map((msg, i) => (
-          <div key={i} className={msg.sender === "user" ? "text-right" : "text-left"}>
-            <span
-              className={`inline-block px-4 py-2 rounded-xl ${
-                msg.sender === "user"
-                  ? "bg-blue-100 text-blue-900"
-                  : "bg-gray-200 text-gray-800"
-              }`}
-            >
-              {msg.text}
-            </span>
+    <>
+      <IdentitySelector onSelect={setIdentity} />
+      {identity && (
+        <div className="w-full max-w-2xl bg-white border rounded-xl p-4 shadow mx-auto mt-6">
+          <div className="h-80 overflow-y-auto mb-4 space-y-2">
+            {messages.map((msg, i) => (
+              <div key={i} className={msg.sender === "user" ? "text-right" : "text-left"}>
+                <span
+                  className={`inline-block px-4 py-2 rounded-xl ${
+                    msg.sender === "user"
+                      ? "bg-blue-100 text-blue-900"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                >
+                  {msg.text}
+                </span>
+              </div>
+            ))}
+            {loading && <div className="text-gray-400">Sto riflettendo…</div>}
           </div>
-        ))}
-        {loading && <div className="text-gray-400">Sto riflettendo…</div>}
-      </div>
-      <div className="flex">
-        <input
-          className="flex-1 border rounded-l-xl px-4 py-2"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Scrivi qualcosa..."
-        />
-        <button
-          onClick={sendMessage}
-          className="bg-blue-500 text-white px-4 py-2 rounded-r-xl"
-          disabled={loading}
-        >
-          Invia
-        </button>
-      </div>
-    </div>
+          <div className="flex">
+            <input
+              className="flex-1 border rounded-l-xl px-4 py-2"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Scrivi qualcosa..."
+            />
+            <button
+              onClick={sendMessage}
+              className="bg-blue-500 text-white px-4 py-2 rounded-r-xl"
+              disabled={loading}
+            >
+              Invia
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
