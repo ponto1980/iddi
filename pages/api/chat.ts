@@ -15,7 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const payload = {
     model: "mistralai/Mistral-7B-Instruct-v0.1",
     messages: [
-      { role: "system", content: "Rispondi con empatia e chiarezza. Sii una guida riflessiva e stimolante." },
+      {
+        role: "system",
+        content: "Rispondi sempre in italiano, con empatia e chiarezza. Sii una guida riflessiva e stimolante."
+      },
       ...(history || []),
       { role: "user", content: message }
     ]
