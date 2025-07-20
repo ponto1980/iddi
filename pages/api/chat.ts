@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "deepseek-ai/DeepSeek-Coder-1.3B-Instruct",
+        model: "mistralai/Mistral-7B-Instruct-v0.1",
         messages: [
           { role: "system", content: "Rispondi con empatia e chiarezza. Sii una guida riflessiva e stimolante." },
           { role: "user", content: message }
