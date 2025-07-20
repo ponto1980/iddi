@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = await response.json();
     if (data.error) {
-      return res.status(500).json({ reply: `Errore Together.ai: ${data.error}` });
+      return res.status(500).json({ reply: `Errore Together.ai: ${JSON.stringify(data.error)}` });
     }
 
     const reply = data.choices?.[0]?.message?.content || "Nessuna risposta ricevuta.";
