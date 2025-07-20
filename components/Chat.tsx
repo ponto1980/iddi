@@ -19,7 +19,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [identity, setIdentity] = useState<Identity | null>(null);
-  const sessionId = "test-user"; // in futuro sostituibile con login
+  const sessionId = "test-user"; // da sostituire con login in futuro
 
   useEffect(() => {
     const saved = localStorage.getItem("iddi_identity");
@@ -32,7 +32,7 @@ export default function Chat() {
     onValue(msgRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        setMessages(data);
+        setMessages(data as Message[]);
       }
     });
   }, []);
@@ -60,11 +60,11 @@ export default function Chat() {
       });
 
       const data = await res.json();
-      const updatedMessages = [...newMessages, { sender: "bot", text: data.reply }];
+      const updatedMessages: Message[] = [...newMessages, { sender: "bot", text: data.reply }];
       setMessages(updatedMessages);
       set(ref(db, `sessions/${sessionId}/messages`), updatedMessages);
     } catch (err) {
-      const fallback = [...newMessages, { sender: "bot", text: "Errore nella comunicazione." }];
+      const fallback: Message[] = [...newMessages, { sender: "bot", text: "Errore nella comunicazione." }];
       setMessages(fallback);
     }
 
