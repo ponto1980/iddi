@@ -6,46 +6,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { message, history, prompt } = req.body;
-  const apiKey = process.env.TOGETHER_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: "Missing Together API key" });
+    return res.status(500).json({ error: "Missing Claude API key" });
   }
 
   try {
-    const messages = [
-      {
-        role: "system",
-        content: prompt || "Rispondi in italiano, sii coerente, logico, empatico e non ripetitivo. Tieni memoria della conversazione."
-      },
-      ...history,
-      { role: "user", content: message }
-    ];
+    const formattedHistory = history.map((msg: any) =>
+      msg.sender === "user"
+        ? `
 
-    const response = await fetch("https://api.together.xyz/v1/chat/completions", {
+Human: ${msg.text}`
+        : `
+
+Assistant: ${msg.text}`
+    ).join("");
+
+    const body = {
+      model: "claude-3-haiku-20240307",
+      max_tokens: 1024,
+      temperature: 0.7,
+      messages: [],
+      system: prompt || "Sei un assistente brillante, empatico e ragioni in italiano.",
+      stream: false,
+      prompt: `${formattedHistory}
+
+Human: ${message}
+
+Assistant:`
+    };
+
+    const response = await fetch("https://api.anthropic.com/v1/complete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01"
       },
-      body: JSON.stringify({
-        model: "deepseek-ai/deepseek-chat",
-        messages,
-        temperature: 0.7,
-        top_p: 0.9
-      })
+      body: JSON.stringify(body)
     });
 
     const data = await response.json();
 
     if (data.error) {
-      return res.status(500).json({ reply: `Errore Together.ai: ${JSON.stringify(data.error)}` });
+      return res.status(500).json({ reply: `Errore Claude: ${JSON.stringify(data.error)}` });
     }
 
-    const reply = data.choices?.[0]?.message?.content || "Nessuna risposta ricevuta.";
+    const reply = data.completion || "Nessuna risposta ricevuta.";
     res.status(200).json({ reply });
   } catch (error) {
-    console.error("Errore chiamata Together.ai:", error);
-    res.status(500).json({ reply: "Errore nella comunicazione con Together.ai." });
+    console.error("Errore Claude API:", error);
+    res.status(500).json({ reply: "Errore nella comunicazione con Claude." });
   }
 }
