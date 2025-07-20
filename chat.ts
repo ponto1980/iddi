@@ -23,18 +23,28 @@ Human: ${msg.text}`
 Assistant: ${msg.text}`
     ).join("");
 
+    const systemPrompt = prompt || "Sei un assistente brillante, empatico e ragioni in italiano.";
+
+    const fullPrompt = `${formattedHistory}
+
+Human: ${message}
+
+Assistant:`;
+
+    // LOG DATI INVIATI
+    console.log("🧠 Claude – Debug");
+    console.log("📌 Prompt di sistema:", systemPrompt);
+    console.log("📜 Cronologia (formattata):", formattedHistory);
+    console.log("💬 Ultimo messaggio utente:", message);
+
     const body = {
       model: "claude-3-haiku-20240307",
       max_tokens: 1024,
       temperature: 0.7,
-      messages: [],
-      system: prompt || "Sei un assistente brillante, empatico e ragioni in italiano.",
-      stream: false,
-      prompt: `${formattedHistory}
-
-Human: ${message}
-
-Assistant:`
+      top_p: 0.9,
+      system: systemPrompt,
+      prompt: fullPrompt,
+      stream: false
     };
 
     const response = await fetch("https://api.anthropic.com/v1/complete", {
