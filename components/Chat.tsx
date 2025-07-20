@@ -47,9 +47,11 @@ export default function Chat() {
           {messages.map((msg, i) => (
             <div key={i} className={msg.sender === "user" ? "text-right" : "text-left"}>
               <span
-                className={\`inline-block px-4 py-2 rounded-xl \${msg.sender === "user"
-                  ? "bg-blue-100 text-blue-900"
-                  : "bg-gray-200 text-gray-800"}\`}
+                className={`inline-block px-4 py-2 rounded-xl ${
+                  msg.sender === "user"
+                    ? "bg-blue-100 text-blue-900"
+                    : "bg-gray-200 text-gray-800"
+                }`}
               >
                 {msg.text}
               </span>
