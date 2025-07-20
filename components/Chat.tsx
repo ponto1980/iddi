@@ -13,7 +13,7 @@ export default function Chat() {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    const newMessages = [...messages, { sender: "user", text: input }];
+    const newMessages: Message[] = [...messages, { sender: "user", text: input }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
