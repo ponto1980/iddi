@@ -14,7 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const messages = [
-      { role: "system", content: prompt || "Sei un assistente brillante, empatico e ragioni sempre in italiano. Rispondi con logica e chiarezza." },
+      {
+        role: "system",
+        content: prompt || "Rispondi in italiano, sii coerente, logico, empatico e non ripetitivo. Tieni memoria della conversazione."
+      },
       ...history,
       { role: "user", content: message }
     ];
@@ -26,9 +29,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "mistralai/Mistral-7B-Instruct-v0.1",
+        model: "deepseek-ai/deepseek-chat",
         messages,
-        temperature: 0.7
+        temperature: 0.7,
+        top_p: 0.9
       })
     });
 
