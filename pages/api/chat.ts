@@ -6,39 +6,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { message } = req.body;
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.TOGETHER_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'Missing OpenAI API key' });
+    return res.status(500).json({ error: 'Missing Together API key' });
   }
 
   try {
-    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.together.xyz/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "mistral-7b-instruct",
         messages: [
-          { role: "system", content: "Rispondi con empatia e chiarezza. Sii una guida riflessiva e non sbrigativa." },
+          { role: "system", content: "Rispondi con empatia e chiarezza. Sii una guida riflessiva, pacata e stimolante." },
           { role: "user", content: message }
         ]
       })
     });
 
-    const data = await completion.json();
-    console.log("OpenAI raw response:", JSON.stringify(data, null, 2));
-
+    const data = await response.json();
     if (data.error) {
-      return res.status(500).json({ reply: `Errore OpenAI: ${data.error.message}` });
+      return res.status(500).json({ reply: `Errore Together.ai: ${data.error}` });
     }
 
-    const response = data.choices?.[0]?.message?.content || "Nessuna risposta utile ricevuta.";
-    res.status(200).json({ reply: response });
+    const reply = data.choices?.[0]?.message?.content || "Nessuna risposta ricevuta.";
+    res.status(200).json({ reply });
   } catch (error) {
-    console.error("Errore fetch verso OpenAI:", error);
-    res.status(500).json({ reply: "Errore nella comunicazione con OpenAI." });
+    console.error("Errore chiamata Together.ai:", error);
+    res.status(500).json({ reply: "Errore nella comunicazione con Together.ai." });
   }
 }
