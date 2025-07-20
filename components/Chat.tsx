@@ -2,26 +2,33 @@ import { useState, useEffect, useRef } from "react";
 
 export default function Chat() {
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "Ciao! Sono iddi. Come posso aiutarti oggi?" }
+    { sender: "bot", text: "Ciao! Sono iddi. Inizia a parlare con me." }
   ]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
-    const userMessage = { sender: "user", text: input };
-    const botResponse = { sender: "bot", text: generateMockResponse(input) };
-    setMessages([...messages, userMessage, botResponse]);
-    setInput("");
-  };
 
-  const generateMockResponse = (text: string) => {
-    if (text.toLowerCase().includes("tempo")) {
-      return "Oggi è una splendida giornata per costruire qualcosa di utile!";
-    } else if (text.toLowerCase().includes("chi sei")) {
-      return "Sono iddi, un'idea in evoluzione. E tu?";
-    } else {
-      return "Interessante... dimmi di più.";
+    const userMessage = { sender: "user", text: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input })
+      });
+      const data = await res.json();
+      const botMessage = { sender: "bot", text: data.reply };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (err) {
+      setMessages(prev => [...prev, { sender: "bot", text: "Errore nel recupero risposta." }]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,14 +46,19 @@ export default function Chat() {
         {messages.map((msg, i) => (
           <div key={i} className={msg.sender === "user" ? "text-right" : "text-left"}>
             <span
-              className={`inline-block px-4 py-2 rounded-xl ${
-                msg.sender === "user" ? "bg-blue-100 text-blue-900" : "bg-gray-200 text-gray-800"
-              }`}
+              className={\`inline-block px-4 py-2 rounded-xl \${msg.sender === "user"
+                ? "bg-blue-100 text-blue-900"
+                : "bg-gray-200 text-gray-800"}\`}
             >
               {msg.text}
             </span>
           </div>
         ))}
+        {loading && (
+          <div className="text-left">
+            <span className="inline-block px-4 py-2 rounded-xl bg-gray-100 text-gray-500">Sto pensando...</span>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <div className="flex">
