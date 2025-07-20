@@ -23,19 +23,7 @@ Human: ${msg.text}`
 Assistant: ${msg.text}`
     ).join("");
 
-    const systemPrompt = prompt || "Sei un assistente brillante, empatico e ragioni in italiano.";
-
-    const fullPrompt = `${formattedHistory}
-
-Human: ${message}
-
-Assistant:`;
-
-    // LOG DATI INVIATI
-    console.log("🧠 Claude – Debug");
-    console.log("📌 Prompt di sistema:", systemPrompt);
-    console.log("📜 Cronologia (formattata):", formattedHistory);
-    console.log("💬 Ultimo messaggio utente:", message);
+    const systemPrompt = prompt || "Sei un assistente brillante, empatico e ragioni in italiano. Rispondi con logica, coerenza e comprensione del contesto.";
 
     const body = {
       model: "claude-3-haiku-20240307",
@@ -43,7 +31,11 @@ Assistant:`;
       temperature: 0.7,
       top_p: 0.9,
       system: systemPrompt,
-      prompt: fullPrompt,
+      prompt: `${formattedHistory}
+
+Human: ${message}
+
+Assistant:`,
       stream: false
     };
 
@@ -63,7 +55,7 @@ Assistant:`;
       return res.status(500).json({ reply: `Errore Claude: ${JSON.stringify(data.error)}` });
     }
 
-    const reply = data.completion || "Nessuna risposta ricevuta.";
+    const reply = data.completion?.trim() || "Nessuna risposta ricevuta.";
     res.status(200).json({ reply });
   } catch (error) {
     console.error("Errore Claude API:", error);
